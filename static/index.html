@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD App</title>
+    <style>
+        body {
+            background-image: url('https://storage.yandexcloud.net/go-ya-pro-crud/background.jpg');
+            background-size: cover;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            width: calc(100% - 22px);
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px;
+            background: #007BFF;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CRUD App</h1>
+        <form id="item-form">
+            <input type="text" id="name" placeholder="Item Name" required>
+            <button type="submit">Add Item</button>
+        </form>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="items-list">
+                <!-- Items will be inserted here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const apiUrl = 'http://localhost:8080/items';
+
+        document.getElementById('item-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            });
+
+            if (response.ok) {
+                document.getElementById('name').value = '';
+                loadItems();
+            }
+        });
+
+        async function loadItems() {
+            const response = await fetch(apiUrl);
+            const items = await response.json();
+
+            const itemsList = document.getElementById('items-list');
+            itemsList.innerHTML = '';
+
+            items.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.id}</td>
+                    <td>${item.name}</td>
+                    <td>
+                        <button onclick="deleteItem(${item.id})">Delete</button>
+                    </td>
+                `;
+                itemsList.appendChild(row);
+            });
+        }
+
+        async function deleteItem(id) {
+            const response = await fetch(`${apiUrl}/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                loadItems();
+            }
+        }
+
+        loadItems();
+    </script>
+</body>
+</html>
