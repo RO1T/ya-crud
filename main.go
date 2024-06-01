@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	_ "main/docs"
@@ -75,8 +76,9 @@ func main() {
 
 	handler := c.Handler(router)
 
-	log.Println("Server is running on port 8080")
-	log.Fatal(http.ListenAndServe(":8080", handler))
+	portStr := os.Getenv("PORT")
+	log.Printf("Server is running on port %s\n", portStr)
+	log.Fatal(http.ListenAndServe(":"+portStr, handler))
 }
 
 func connectDB() (*sql.DB, error) {
