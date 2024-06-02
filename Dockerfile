@@ -1,10 +1,23 @@
-FROM golang:latest AS build
+# Базовый образ для сборки
+FROM golang:latest
 
-WORKDIR /app
-ADD main.go .
-RUN GOARCH=amd64 go build -a -tags netgo -ldflags '-w -extldflags "-static"' -o server-app *.go
+# Копируем файлы приложения в рабочую директорию образа
+COPY . /go/src/app
+WORKDIR /go/src/app
 
-FROM scratch
-COPY --from=build /app/server-app /server-app
+# Устанавливаем необходимые зависимости
+RUN go get -d -v ./...
 
-ENTRYPOINT ["/server-app"]
+# Собираем приложение
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app .
+
+# Добавляем сертификаты в образ
+COPY cert /home/rino/.postgresql/
+
+# Определяем точку входа в контейнер
+ENTRYPOINT ["./app"]
+
+# Запускаем контейнер с указанным портом
+EXPOSE 8080
+CMD ["app"]
+
